@@ -78,6 +78,13 @@ public class ModuleClassLoader extends ConcurrentClassLoader {
 
     private final Module module;
     private final ClassFileTransformer transformer;
+    private final ThreadLocal<Boolean> logFailedDefineClass = new ThreadLocal<Boolean>() {
+
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.TRUE;
+        }
+    };
 
     private volatile Paths<ResourceLoader, ResourceLoaderSpec> paths;
 
@@ -478,12 +485,22 @@ public class ModuleClassLoader extends ConcurrentClassLoader {
                 throw ne;
             }
         } catch (Error e) {
-            log.classDefineFailed(e, name, module);
+            // Only log once per failed attempt
+            if (logFailedDefineClass.get()) {
+                logFailedDefineClass.set(Boolean.FALSE);
+                log.classDefineFailed(e, name, module);
+            }
             throw e;
         } catch (RuntimeException e) {
-            log.classDefineFailed(e, name, module);
+            // Only log once per failed attempt
+            if (logFailedDefineClass.get()) {
+                logFailedDefineClass.set(Boolean.FALSE);
+                log.classDefineFailed(e, name, module);
+            }
             throw e;
         }
+        // Reset to log again
+        logFailedDefineClass.set(Boolean.TRUE);
         final AssertionSetting setting = classSpec.getAssertionSetting();
         if (setting != AssertionSetting.INHERIT) {
             setClassAssertionStatus(name, setting == AssertionSetting.ENABLED);
