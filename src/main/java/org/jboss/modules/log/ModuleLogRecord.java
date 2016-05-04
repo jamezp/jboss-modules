@@ -82,7 +82,7 @@ class ModuleLogRecord extends LogRecord {
         final LogRecord replacement = new LogRecord(getLevel(), getMessage());
         replacement.setResourceBundle(getResourceBundle());
         replacement.setLoggerName(getLoggerName());
-        replacement.setMillis(getMillis());
+        replacement.setInstant(getInstant());
         replacement.setParameters(getParameters());
         replacement.setResourceBundleName(getResourceBundleName());
         replacement.setSequenceNumber(getSequenceNumber());
